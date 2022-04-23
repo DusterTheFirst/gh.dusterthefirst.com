@@ -1,8 +1,11 @@
 [package]
 name = "github-dusterthefirst-com"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+publish = false
 
 [dependencies]
+dioxus = { version = "0.2.3", features = ["web"] }
+reqwest = { version = "0.11.10", features = ["json"] }
+serde = { version = "1.0.136", features = ["derive"] }
+time = { version = "0.3.9", features = ["serde-well-known"] }
