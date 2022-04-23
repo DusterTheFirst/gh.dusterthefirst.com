@@ -51,7 +51,7 @@ fn app(cx: Scope) -> Element {
 
     let repos = use_future(&cx, (), |_| async move {
         reqwest::get("https://api.github.com/orgs/thedustyard/repos")
-        // reqwest::get("https://api.github.com/users/DusterTheFirst/repos")
+            // reqwest::get("https://api.github.com/users/DusterTheFirst/repos")
             .await?
             .json::<Vec<Repo>>()
             .await

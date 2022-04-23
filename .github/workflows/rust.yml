@@ -15,6 +15,7 @@ jobs:
                   profile: minimal
                   toolchain: stable
                   components: clippy
+                  target: wasm32-unknown-unknown
 
             - uses: actions/checkout@v2
 
@@ -54,6 +55,7 @@ jobs:
                   profile: minimal
                   toolchain: stable
                   target: wasm32-unknown-unknown
+
             - uses: actions/checkout@v2
 
             - name: Install trunk
