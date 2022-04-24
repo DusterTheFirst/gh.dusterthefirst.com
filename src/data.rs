@@ -51,6 +51,7 @@ pub fn use_repos(
                 })
             }),
             Box::new(|| {
+                future.clear();
                 future.restart();
             }) as Box<_>,
         )
@@ -90,6 +91,7 @@ async fn fetch_colors() -> Result<HashMap<String, Option<String>>, GithubApiErro
 async fn fetch_repos() -> Result<Vec<Repo>, GithubApiError> {
     // reqwest::get("https://api.github.com/users/DusterTheFirst/repos")
 
+    // TODO: pagination
     let response = Request::get("https://api.github.com/orgs/thedustyard/repos?per_page=10") // TODO: 100
         .header("accept", "application/vnd.github.v3+json")
         .cache(RequestCache::Default)
@@ -118,6 +120,8 @@ async fn fetch_repos() -> Result<Vec<Repo>, GithubApiError> {
 
         return Err(GithubApiError::RateLimited { until });
     }
+    
+    let link = response.headers().get("link");
 
     Ok(response
         .json::<Vec<Repo>>()

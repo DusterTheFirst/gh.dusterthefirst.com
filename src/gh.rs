@@ -8,7 +8,7 @@ pub enum GithubApiError {
 
 pub async fn fetch(url: &str) -> Result<Response, GithubApiError> {
     let response = Request::get(url)
-        .header("accept", "application/vnd.github.v3+json") // TODO: Deduplicate
+        .header("accept", "application/vnd.github.v3+json")
         .cache(RequestCache::Default)
         .send()
         .await

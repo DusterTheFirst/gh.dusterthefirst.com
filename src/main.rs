@@ -32,8 +32,10 @@ fn app(cx: Scope) -> Element {
                             style: "display: flex; justify-content: space-between; text-align: center",
 
                             span { "Name: {repo.name}" }
+                            span { "Description: {repo.description:?}" }
                             span { "Lang: {repo.language:?}" }
                             span { "Created: {repo.created_at}" }
+                            span { "Updated: {repo.updated_at}" }
                         }
 
                         details {
@@ -92,6 +94,7 @@ fn app(cx: Scope) -> Element {
 
             input { value: "{input}", oninput: |event| input.set(event.value.clone()) }
             pre { "{input}" }
+            
         }
     })
 }
