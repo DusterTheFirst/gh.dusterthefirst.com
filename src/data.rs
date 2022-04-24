@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use dioxus::prelude::*;
-use gloo_net::http::{Request, RequestCache};
+use once_cell::sync::Lazy;
+use regex::Regex;
 use serde::Deserialize;
 use time::OffsetDateTime;
 
@@ -18,20 +19,29 @@ pub struct Repo {
     pub created_at: OffsetDateTime,
     #[serde(with = "time::serde::rfc3339")]
     pub updated_at: OffsetDateTime,
+
+    pub owner: Owner,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Owner {
+    pub login: String,
+    pub avatar_url: String,
+    pub html_url: String,
 }
 
 #[derive(Debug)]
-pub struct RepoAndColor<'r, 'c> {
+pub struct RepoAndColor<'r> {
     pub repo: &'r Repo,
-    pub color: Option<&'c str>,
+    pub color: Option<&'r str>,
 }
 
-type RefetchFn<'f> = Box<dyn Fn() + 'f>;
+pub type RefetchFn<'f> = Box<dyn Fn() + 'f>;
 
 pub fn use_repos(
     cx: &ScopeState,
 ) -> Option<(
-    Result<impl Iterator<Item = RepoAndColor>, &GithubApiError>,
+    Result<Vec<RepoAndColor<'_>>, &GithubApiError>,
     RefetchFn<'_>,
 )> {
     let future = use_future(cx, (), |()| async {
@@ -41,14 +51,16 @@ pub fn use_repos(
     future.value().map(|res| {
         (
             res.as_ref().map(|(colors, repos)| {
-                repos.iter().map(|repo| RepoAndColor {
-                    color: repo.language.as_ref().and_then(|language| {
-                        colors
-                            .get(language)
-                            .and_then(|ghc| ghc.as_ref().map(|c| c.as_str()))
-                    }),
-                    repo,
-                })
+                repos
+                    .iter()
+                    .map(|repo| RepoAndColor {
+                        color: repo
+                            .language
+                            .as_ref()
+                            .and_then(|language| colors.get(language).map(|ghc| ghc.as_str())),
+                        repo,
+                    })
+                    .collect::<Vec<_>>()
             }),
             Box::new(|| {
                 future.clear();
@@ -58,7 +70,7 @@ pub fn use_repos(
     })
 }
 
-async fn fetch_colors() -> Result<HashMap<String, Option<String>>, GithubApiError> {
+async fn fetch_colors() -> Result<HashMap<String, String>, GithubApiError> {
     let response =
         gh::fetch("https://api.github.com/repos/ozh/github-colors/contents/colors.json").await?;
 
@@ -84,47 +96,59 @@ async fn fetch_colors() -> Result<HashMap<String, Option<String>>, GithubApiErro
 
     Ok(colors
         .into_iter()
-        .map(|(key, value)| (key, value["color"].as_str().map(String::from)))
-        .collect::<HashMap<String, Option<String>>>())
+        .filter_map(|(key, value)| {
+            value["color"]
+                .as_str()
+                .map(|value| (key, String::from(value)))
+        })
+        .collect::<HashMap<String, String>>())
 }
 
 async fn fetch_repos() -> Result<Vec<Repo>, GithubApiError> {
     // reqwest::get("https://api.github.com/users/DusterTheFirst/repos")
 
-    // TODO: pagination
-    let response = Request::get("https://api.github.com/orgs/thedustyard/repos?per_page=10") // TODO: 100
-        .header("accept", "application/vnd.github.v3+json")
-        .cache(RequestCache::Default)
-        .send()
-        .await
-        .map_err(GithubApiError::Net)?;
+    let mut repos = Vec::new();
 
-    // let used = response.header("x-ratelimit-used");
-    // let remaining = response.header("x-ratelimit-remaining");
-    // let resource = response.header("x-ratelimit-resource");
-    // let limit = response.header("x-ratelimit-limit");
+    let mut url = Cow::Borrowed("https://api.github.com/orgs/thedustyard/repos?per_page=100"); // TODO: 100
 
-    if response.status() == 403 {
-        let reset = response
-            .headers()
-            .get("x-ratelimit-reset")
-            .expect("x-ratelimit-reset header missing");
+    loop {
+        let response = gh::fetch(&url).await?;
 
-        let until = OffsetDateTime::from_unix_timestamp(
-            reset
-                .as_str()
-                .parse()
-                .expect("x-ratelimit-reset provided as a non-integer"),
-        )
-        .expect("x-ratelimit-reset provided an invalid unix timestamp");
+        repos.extend(
+            response
+                .json::<Vec<Repo>>()
+                .await
+                .expect("received unexpected json content"),
+        );
 
-        return Err(GithubApiError::RateLimited { until });
+        if let Some(link) = response.headers().get("link") {
+            static REGEX: Lazy<Regex> = Lazy::new(|| {
+                Regex::new("<(?P<url>.+?)>; rel=\"(?P<rel>.+?)\"").expect("invalid regex")
+            });
+
+            let captures = REGEX
+                .captures_iter(&link)
+                .map(|captures| {
+                    (
+                        captures.name("rel").expect("no `rel` group").as_str(),
+                        captures.name("url").expect("no `url` group").as_str(),
+                    )
+                })
+                .collect::<HashMap<_, _>>();
+
+            log::debug!(target: "amogus", "{captures:?}");
+
+            if let Some(next) = captures.get("next") {
+                url = Cow::Owned(next.to_string());
+            } else {
+                log::debug!("Reached end of pagination");
+                break;
+            }
+        } else {
+            log::debug!("No pagination");
+            break;
+        }
     }
-    
-    let link = response.headers().get("link");
 
-    Ok(response
-        .json::<Vec<Repo>>()
-        .await
-        .expect("received unexpected json content"))
+    Ok(repos)
 }
