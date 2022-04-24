@@ -8,17 +8,17 @@ pub fn all_repositories<'a>(cx: Scope, repos: Vec<RepoAndColor<'a>>) -> Element 
         factory.fragment_from_iter(repos.iter().map(|repo| {
             let color = repo.color.unwrap_or("default");
             let repo = repo.repo;
-    
+
             let language = repo.language.as_deref().unwrap_or("None");
-    
+
             rsx! {
                 div {
                     key: "{repo.node_id}",
                     style: "background-color: {color}",
-    
+
                     div {
                         style: "display: flex; justify-content: space-between; text-align: center",
-    
+
                         span {
                             "Owner: "
                             a {
@@ -38,7 +38,7 @@ pub fn all_repositories<'a>(cx: Scope, repos: Vec<RepoAndColor<'a>>) -> Element 
                         span { "Created: {repo.created_at}" }
                         span { "Updated: {repo.updated_at}" }
                     }
-    
+
                     details {
                         summary { "raw..." }
                         pre { "{repo:#?}" }

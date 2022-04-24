@@ -24,7 +24,7 @@ pub fn github_api_error<'a>(
         GithubApiError::RateLimited { until } => rsx! {
             self::rate_limited {
                 until: *until
-            } 
+            }
         },
     };
 
