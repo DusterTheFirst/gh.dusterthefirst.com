@@ -1,90 +1,97 @@
-use std::collections::HashMap;
-
+use data::use_repos;
 use dioxus::prelude::*;
-use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
+use gh::GithubApiError;
+use instant::SystemTime;
+use time::macros::format_description;
+
+mod data;
+mod gh;
 
 fn main() {
     dioxus::web::launch(app);
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct GithubColor {
-    color: Option<String>,
-}
-
-type GithubColors = HashMap<String, GithubColor>;
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Repo {
-    name: String,
-    html_url: String,
-    description: Option<String>,
-    language: Option<String>,
-    #[serde(with = "time::serde::rfc3339")]
-    created_at: OffsetDateTime,
-    #[serde(with = "time::serde::rfc3339")]
-    updated_at: OffsetDateTime,
-}
-
 fn app(cx: Scope) -> Element {
-    let colors = use_future(&cx, (), |_| async move {
-        reqwest::get("https://raw.githubusercontent.com/ozh/github-colors/master/colors.json")
-            .await?
-            .json::<GithubColors>()
-            .await
-    })
-    .value();
-
-    let colors = match colors {
-        Some(Ok(colors)) => rsx! {
-            pre { "{colors:#?}" }
-        },
-        Some(Err(e)) => rsx! {
-            div { style: "font-weight: bold", "Encountered error fetching github color information"}
-            div { "{e}" }
-        },
-        None => rsx! {
-            div { "loading color information" }
-        },
-    };
-
-    let repos = use_future(&cx, (), |_| async move {
-        reqwest::get("https://api.github.com/orgs/thedustyard/repos")
-            // reqwest::get("https://api.github.com/users/DusterTheFirst/repos")
-            .await?
-            .json::<Vec<Repo>>()
-            .await
-    })
-    .value();
+    let repos = use_repos(&cx);
 
     let repos = match repos {
-        Some(Ok(colors)) => rsx! {
-            pre { "{colors:#?}" }
-        },
-        Some(Err(e)) => rsx! {
-            div { style: "font-weight: bold", "Encountered error fetching github repo information"}
-            div { "{e}" }
-        },
         None => rsx! {
-            div { "loading repo information" }
+            div { "loading github information" }
         },
+        Some((Ok(repos), _refresh)) => rsx! {
+            repos.map(|repo| {
+                let color = repo.color.unwrap_or("default");
+                let repo = repo.repo;
+
+                rsx! {
+                    div {
+                        key: "{repo.node_id}",
+                        style: "background-color: {color}",
+
+                        div {
+                            style: "display: flex; justify-content: space-between; text-align: center",
+
+                            span { "Name: {repo.name}" }
+                            span { "Lang: {repo.language:?}" }
+                            span { "Created: {repo.created_at}" }
+                        }
+
+                        details {
+                            summary { "raw..." }
+                            pre { "{repo:#?}" }
+                        }
+                    }
+
+                }
+            })
+        },
+        Some((Err(error), refresh)) => {
+            let error = match error {
+                GithubApiError::Net(e) => rsx! { div { "{e}" } },
+                GithubApiError::RateLimited { until } => {
+                    let duration = *until
+                        - time::OffsetDateTime::from_unix_timestamp(
+                            SystemTime::now()
+                                .duration_since(SystemTime::UNIX_EPOCH)
+                                .expect("current time before unix epoch")
+                                .as_secs() as _,
+                        )
+                        .expect("unable to convert time from epoch");
+
+                    let until = until
+                        .format(format_description!("[hour]:[minute]:[second] UTC"))
+                        .expect("failed to format date");
+
+                    rsx! {
+                        div { "encountered a ratelimit, try again after {duration} (@ {until}) "}
+
+                    }
+                }
+            };
+
+            rsx! {
+                div { style: "font-weight: bold", "Encountered error fetching github information"}
+                error
+
+                button {
+                    onclick: move |_e| { refresh() },
+                    "retry"
+                }
+            }
+        }
     };
+
+    let input = use_state(&cx, String::new);
 
     cx.render(rsx! {
         div {
-            details {
-                open: "true",
+            h1 { "Repos and Color" }
+            repos
 
-                summary { "dustyard repos:" }
-                repos
-            }
-            details {
-                open: "true",
+            hr {}
 
-                summary { "colors:" }
-                colors
-            }
+            input { value: "{input}", oninput: |event| input.set(event.value.clone()) }
+            pre { "{input}" }
         }
     })
 }
