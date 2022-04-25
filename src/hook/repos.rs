@@ -1,6 +1,7 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{collections::HashMap, iter};
 
 use dioxus::prelude::*;
+use log::{debug, trace};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Deserialize;
@@ -31,37 +32,48 @@ pub struct Owner {
 }
 
 #[derive(Debug)]
-pub struct RepoAndColor<'r> {
-    pub repo: &'r Repo,
-    pub color: Option<&'r str>,
+pub struct RepoAndColor {
+    pub repo: Repo,
+    pub color: Option<String>,
 }
 
 pub type RefetchFn<'f> = Box<dyn Fn() + 'f>;
 
-pub fn use_repos(
-    cx: &ScopeState,
-) -> Option<(
-    Result<Vec<RepoAndColor<'_>>, &GithubApiError>,
-    RefetchFn<'_>,
-)> {
-    let future = use_future(cx, (), |()| async {
-        futures::try_join!(fetch_colors(), fetch_repos())
+type Repos = HashMap<&'static str, Vec<RepoAndColor>>;
+
+pub fn use_repos<'state>(
+    cx: &'state ScopeState,
+    users: Vec<&'static str>,
+) -> Option<(&'state Result<Repos, GithubApiError>, RefetchFn<'state>)> {
+    let future = use_future(cx, (), move |()| async move {
+        let result = futures::try_join!(
+            fetch_colors(),
+            futures::future::try_join_all(users.iter().map(|user| fetch_all_user_repos(user)))
+        );
+
+        result.map(|(colors, repos)| {
+            iter::zip(
+                users.iter().copied(),
+                repos.into_iter().map(|repos| {
+                    repos
+                        .into_iter()
+                        .map(|repo| RepoAndColor {
+                            color: repo
+                                .language
+                                .as_ref()
+                                .and_then(|language| colors.get(language).cloned()),
+                            repo,
+                        })
+                        .collect()
+                }),
+            )
+            .collect()
+        })
     });
 
     future.value().map(|res| {
         (
-            res.as_ref().map(|(colors, repos)| {
-                repos
-                    .iter()
-                    .map(|repo| RepoAndColor {
-                        color: repo
-                            .language
-                            .as_ref()
-                            .and_then(|language| colors.get(language).map(|ghc| ghc.as_str())),
-                        repo,
-                    })
-                    .collect::<Vec<_>>()
-            }),
+            res,
             Box::new(|| {
                 future.clear();
                 future.restart();
@@ -104,12 +116,12 @@ async fn fetch_colors() -> Result<HashMap<String, String>, GithubApiError> {
         .collect::<HashMap<String, String>>())
 }
 
-async fn fetch_repos() -> Result<Vec<Repo>, GithubApiError> {
-    // reqwest::get("https://api.github.com/users/DusterTheFirst/repos")
-
+async fn fetch_all_user_repos(user: &str) -> Result<Vec<Repo>, GithubApiError> {
     let mut repos = Vec::new();
 
-    let mut url = Cow::Borrowed("https://api.github.com/orgs/thedustyard/repos?per_page=100"); // TODO: 100
+    let mut url = format!(
+        "https://api.github.com/users/{user}/repos?per_page=100&sort=created&direction=asc"
+    );
 
     loop {
         let response = gh::fetch(&url).await?;
@@ -136,16 +148,16 @@ async fn fetch_repos() -> Result<Vec<Repo>, GithubApiError> {
                 })
                 .collect::<HashMap<_, _>>();
 
-            log::debug!(target: "amogus", "{captures:?}");
-
             if let Some(next) = captures.get("next") {
-                url = Cow::Owned(next.to_string());
+                trace!("paginating to next {next}");
+
+                url = next.to_string();
             } else {
-                log::debug!("Reached end of pagination");
+                debug!("Reached end of pagination for {user}");
                 break;
             }
         } else {
-            log::debug!("No pagination");
+            debug!("No pagination for {user}");
             break;
         }
     }

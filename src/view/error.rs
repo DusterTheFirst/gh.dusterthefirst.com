@@ -6,10 +6,9 @@ use dioxus::{
 };
 use futures::StreamExt;
 use gloo_timers::future::IntervalStream;
-use instant::SystemTime;
 use time::{macros::format_description, Duration, OffsetDateTime};
 
-use crate::{data::RefetchFn, gh::GithubApiError};
+use crate::{gh::GithubApiError, hook::repos::RefetchFn, time::now};
 
 #[inline_props]
 pub fn github_api_error<'a>(
@@ -52,25 +51,38 @@ fn rate_limited(cx: Scope, until: OffsetDateTime) -> Element {
         })
     });
 
-    let now = time::OffsetDateTime::from_unix_timestamp(
-        SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("current time before unix epoch")
-            .as_secs() as _,
-    )
-    .expect("unable to convert time from epoch");
+    let duration = {
+        let duration = until.sub(now());
 
-    let duration = until.sub(now).max(Duration::ZERO);
-
-    if duration.is_negative() {
-        refresh.cancel(&cx);
-    }
+        if duration <= Duration::ZERO {
+            refresh.cancel(&cx);
+            Duration::ZERO
+        } else {
+            duration
+        }
+    };
 
     let until = until
         .format(format_description!("[hour]:[minute]:[second] UTC"))
         .expect("failed to format date");
 
+    let key = crate::gh::AUTH_LOCAL_STORAGE_KEY;
+
     cx.render(rsx! {
         div { "encountered a ratelimit, try again after {duration} (@ {until}) "}
+
+        key.map(|key| {
+            rsx! {
+                hr {}
+                div { "during development you can increase the api limit with a personal access token" }
+                details {
+                    summary { "tell me how" }
+
+                    p { "place your personal access token in local storage with the following key" }
+                    code { pre { "{key}" } }
+                    p { "this key will be ignored when the application is not compiled with debug_assertions enabled" }
+                }
+            }
+        })
     })
 }

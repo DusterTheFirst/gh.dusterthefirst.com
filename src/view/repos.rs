@@ -1,15 +1,13 @@
 use dioxus::prelude::*;
 
-use crate::data::RepoAndColor;
+use crate::hook::repos::RepoAndColor;
 
 #[inline_props]
-pub fn all_repositories<'a>(cx: Scope, repos: Vec<RepoAndColor<'a>>) -> Element {
+pub fn all_repositories<'a>(cx: Scope, repos: &'a [RepoAndColor]) -> Element {
     cx.render(LazyNodes::new(|factory: NodeFactory| -> VNode {
-        factory.fragment_from_iter(repos.iter().map(|repo| {
-            let color = repo.color.unwrap_or("default");
-            let repo = repo.repo;
-
-            let language = repo.language.as_deref().unwrap_or("None");
+        factory.fragment_from_iter(repos.iter().map(|RepoAndColor { repo, color }| {
+            let color = color.as_deref().unwrap_or("default");
+            let language = repo.language.as_deref().unwrap_or("Unknown");
 
             rsx! {
                 div {
