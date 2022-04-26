@@ -1,48 +1,56 @@
+use css_colors::{Color, percent};
 use dioxus::prelude::*;
 
 use crate::hook::repos::RepoAndColor;
 
 #[inline_props]
-pub fn all_repositories<'a>(cx: Scope, repos: &'a [RepoAndColor]) -> Element {
-    cx.render(LazyNodes::new(|factory: NodeFactory| -> VNode {
-        factory.fragment_from_iter(repos.iter().map(|RepoAndColor { repo, color }| {
-            let color = color.as_deref().unwrap_or("default");
-            let language = repo.language.as_deref().unwrap_or("Unknown");
+pub fn repository<'a>(cx: Scope, repo: &'a RepoAndColor, saturate: bool) -> Element {
+    let RepoAndColor { repo, color } = repo;
 
-            rsx! {
-                div {
-                    key: "{repo.node_id}",
-                    style: "background-color: {color}",
+    let color = color
+        .map(|color| {
+            if *saturate {
+                color
+            } else {
+                color.desaturate(percent(50))
+            }
+        })
+        .map(|color| color.to_string())
+        .unwrap_or_else(|| "default".to_string());
+    let language = repo.language.as_deref().unwrap_or("Unknown");
 
-                    div {
-                        style: "display: flex; justify-content: space-between; text-align: center",
+    cx.render(rsx! {
+        div {
+            class: "repo",
+            style: "background-color: {color}",
 
-                        span {
-                            "Owner: "
-                            a {
-                                href: "{repo.owner.html_url}",
-                                "{repo.owner.login}"
-                            }
-                        }
-                        span {
-                            "Name: "
-                            a {
-                                href: "{repo.html_url}",
-                                "{repo.name}"
-                            }
-                        }
-                        repo.description.as_ref().map(|description| rsx!{ span { "Description: {description}" } })
-                        span { "Lang: {language}" }
-                        span { "Created: {repo.created_at}" }
-                        span { "Updated: {repo.updated_at}" }
-                    }
+            div {
+                class: "description",
 
-                    details {
-                        summary { "raw..." }
-                        pre { "{repo:#?}" }
+                span {
+                    "Owner: "
+                    a {
+                        href: "{repo.owner.html_url}",
+                        "{repo.owner.login}"
                     }
                 }
+                span {
+                    "Name: "
+                    a {
+                        href: "{repo.html_url}",
+                        "{repo.name}"
+                    }
+                }
+                repo.description.as_ref().map(|description| rsx!{ span { "Description: {description}" } })
+                span { "Lang: {language}" }
+                span { "Created: {repo.created_at}" }
+                span { "Updated: {repo.updated_at}" }
             }
-        }))
-    }))
+
+            details {
+                summary { "raw..." }
+                pre { "{repo:#?}" }
+            }
+        }
+    })
 }

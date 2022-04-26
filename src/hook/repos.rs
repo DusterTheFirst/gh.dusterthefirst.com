@@ -1,5 +1,6 @@
 use std::{collections::HashMap, iter};
 
+use css_colors::{rgb, RGB};
 use dioxus::prelude::*;
 use log::{debug, trace};
 use once_cell::sync::Lazy;
@@ -34,7 +35,7 @@ pub struct Owner {
 #[derive(Debug)]
 pub struct RepoAndColor {
     pub repo: Repo,
-    pub color: Option<String>,
+    pub color: Option<RGB>,
 }
 
 pub type RefetchFn<'f> = Box<dyn Fn() + 'f>;
@@ -61,7 +62,7 @@ pub fn use_repos<'state>(
                             color: repo
                                 .language
                                 .as_ref()
-                                .and_then(|language| colors.get(language).cloned()),
+                                .and_then(|language| colors.get(language).copied()),
                             repo,
                         })
                         .collect()
@@ -82,7 +83,7 @@ pub fn use_repos<'state>(
     })
 }
 
-async fn fetch_colors() -> Result<HashMap<String, String>, GithubApiError> {
+async fn fetch_colors() -> Result<HashMap<String, RGB>, GithubApiError> {
     let response =
         gh::fetch("https://api.github.com/repos/ozh/github-colors/contents/colors.json").await?;
 
@@ -109,11 +110,31 @@ async fn fetch_colors() -> Result<HashMap<String, String>, GithubApiError> {
     Ok(colors
         .into_iter()
         .filter_map(|(key, value)| {
-            value["color"]
-                .as_str()
-                .map(|value| (key, String::from(value)))
+            value["color"].as_str().map(|color| {
+                (key, {
+                    assert_eq!(
+                        color.chars().next(),
+                        Some('#'),
+                        "received non-hex formatted color"
+                    );
+                    assert_eq!(
+                        color.chars().count(),
+                        7,
+                        "received too short hex formatted color"
+                    );
+
+                    let r = u8::from_str_radix(&color[1..3], 16)
+                        .expect("encountered non-hex formatted color");
+                    let g = u8::from_str_radix(&color[3..5], 16)
+                        .expect("encountered non-hex formatted color");
+                    let b = u8::from_str_radix(&color[5..7], 16)
+                        .expect("encountered non-hex formatted color");
+
+                    rgb(r, g, b)
+                })
+            })
         })
-        .collect::<HashMap<String, String>>())
+        .collect())
 }
 
 async fn fetch_all_user_repos(user: &str) -> Result<Vec<Repo>, GithubApiError> {

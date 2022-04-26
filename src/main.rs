@@ -1,7 +1,5 @@
 use dioxus::prelude::*;
-use gloo_events::EventListener;
-use hook::repos::use_repos;
-use web_sys::window;
+use hook::{repos::use_repos, viewport::use_viewport};
 
 mod gh;
 mod hook;
@@ -34,10 +32,17 @@ fn app(cx: Scope) -> Element {
                     section {
                         key: "{user}",
 
-                        h2 { "{user}" }
-                        view::repos::all_repositories {
-                            repos: repos
+                        h2 {
+                            style: "position: sticky; top: 0; background: #000;",
+                            "{user}"
                         }
+                        repos.iter().map(|repo| rsx!{
+                            view::repos::repository {
+                                key: "{repo.repo.node_id}",
+                                repo: repo
+                                saturate: false,
+                            }
+                        })
                     }
                 }
             }))
@@ -50,33 +55,85 @@ fn app(cx: Scope) -> Element {
         },
     };
 
-    let input = use_state(&cx, String::new);
-    let pad_top = use_state(&cx, || 0.0);
-
-    cx.use_hook(|_| {
-        EventListener::new(&window().unwrap().document().unwrap(), "scroll", {
-            let pad_top = pad_top.to_owned();
-
-            move |_e| {
-                pad_top.set(
-                    window()
-                        .expect("window should always exist")
-                        .scroll_y()
-                        .expect("scroll_y should not error"),
-                );
-            }
-        })
-        .forget();
-    });
+    let viewport = use_viewport(&cx);
 
     cx.render(rsx! {
         div {
+            header {
+                class: "title-card",
+
+                div {
+                    class: "extra",
+
+                    "site licensed under "
+                    a {
+                        href: "http://mozilla.org/MPL/2.0/",
+                        title: "the mozilla public license version 2.0",
+                        target: "_blank",
+                        rel: "license",
+                        "MPL-2.0"
+                    }
+                    " on "
+                    a {
+                        href: "https://github.com/dusterthefirst/gh.dusterthefirst.com",
+                        target: "_blank",
+                        rel: "external",
+                        title: "this website's source code",
+                        "github"
+                    }
+                }
+
+                div {
+                    class: "title",
+
+                    div {
+                        class: "main",
+                        "Zachary Kohnen"
+                    }
+                    div {
+                        a {
+                            href: "mailto:me@dusterthefirst.com",
+                            title: "Zachary Kohnen's email",
+                            target: "_blank",
+                            rel: "author",
+                            "me@dusterthefirst.com"
+                        }
+                    }
+                    div {
+                        a {
+                            href: "https://dusterthefirst.com",
+                            title: "Zachary Kohnen's website",
+                            target: "_blank",
+                            rel: "author",
+                            "dusterthefirst.com"
+                        }
+                    }
+                    div {
+                        a {
+                            href: "https://gh.dusterthefirst.com",
+                            title: "Zachary Kohnen's github portfolio",
+                            target: "_self",
+                            rel: "canonical",
+                            "gh.dusterthefirst.com"
+                        }
+                    }
+                    div {
+                        a {
+                            href: "https://github.com/dusterthefirst",
+                            title: "Zachary Kohnen's github",
+                            target: "_blank",
+                            rel: "external",
+                            "github.com/dusterthefirst"
+                        }
+                    }
+                }
+            }
+
             div {
-                style: "top: {pad_top}px; position: absolute;",
+                style: "top: {viewport.scroll_y}px; position: absolute;",
 
-                input { value: "{input}", oninput: |event| input.set(event.value.clone()) }
-                pre { "{input}" }
-
+                h1 { "{viewport.scroll_y}px" }
+                h1 { "{viewport.client_height}px by {viewport.client_width}px" }
                 hr {}
             }
 
