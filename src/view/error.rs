@@ -8,7 +8,7 @@ use futures::StreamExt;
 use gloo_timers::future::IntervalStream;
 use time::{macros::format_description, Duration, OffsetDateTime};
 
-use crate::{gh::GithubApiError, hook::repos::RefetchFn, time::now};
+use crate::{gh::GithubApiError, hook::use_repos::RefetchFn, time::now};
 
 #[inline_props]
 pub fn github_api_error<'a>(

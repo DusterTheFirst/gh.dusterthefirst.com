@@ -1,7 +1,7 @@
 use css_colors::{percent, Color};
 use dioxus::prelude::*;
 
-use crate::hook::repos::RepoAndColor;
+use crate::hook::use_repos::RepoAndColor;
 
 #[inline_props]
 pub fn repository<'a>(cx: Scope, repo: &'a RepoAndColor, saturate: bool) -> Element {

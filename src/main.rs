@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use hook::{repos::use_repos, viewport::use_viewport};
+use hook::{use_repos::use_repos, use_viewport::use_viewport};
 
 mod gh;
 mod hook;
