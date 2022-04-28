@@ -20,7 +20,7 @@ console_log = { version = "0.2.0", features = ["color"] }
 log = "0.4.16"
 
 # Web framework
-dioxus = { version = "0.2.3", features = ["web"] }
+dioxus = { version = "0.2.3", features = ["web", "hooks"] }
 
 # Visualization
 css-colors = "1.0.1"
@@ -42,4 +42,5 @@ futures = "0.3.21"
 once_cell = "1.10.0"
 
 [patch.crates-io]
-# dioxus = { git = "https://github.com/DioxusLabs/dioxus", rev = "07529e491cf85a5fd81d5c7718c43a41432c9468" }
+# dioxus = { git = "https://github.com/DioxusLabs/dioxus", rev = "b53d8b4725029e5444d345d06f94366107fdcd80" }
+dioxus = { git = "https://github.com/dusterthefirst/dioxus", branch = "wasm-cfg" }

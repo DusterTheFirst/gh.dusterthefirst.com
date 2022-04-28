@@ -113,8 +113,7 @@ checksum = "22c2bbfc5708f23437b074ba4e699b14fd6d7181a61695bccc8d944b78739236"
 [[package]]
 name = "dioxus"
 version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b05c86903cd0a136070d786eb5bb20c116c6980533185fc6d4de4f006abb2d89"
+source = "git+https://github.com/dusterthefirst/dioxus?branch=wasm-cfg#cdbdc4c4a20747afea38a9a62062fbd125037f4c"
 dependencies = [
  "dioxus-core",
  "dioxus-core-macro",
@@ -127,8 +126,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0ed0e7a85bbccefaa2339e5ef6bbd8dc95dd64d452653f6dc7d247b60a28eb8"
+source = "git+https://github.com/dusterthefirst/dioxus?branch=wasm-cfg#cdbdc4c4a20747afea38a9a62062fbd125037f4c"
 dependencies = [
  "backtrace",
  "bumpalo",
@@ -146,8 +144,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core-macro"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25a2ac859ab4485bf0d5af6793d8f8f22d8de97ec637d83c8ad158ade83ab46e"
+source = "git+https://github.com/dusterthefirst/dioxus?branch=wasm-cfg#cdbdc4c4a20747afea38a9a62062fbd125037f4c"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -158,8 +155,7 @@ dependencies = [
 [[package]]
 name = "dioxus-hooks"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82cd75f8ae80d4435bf214e14bb6a573212831a85f6446f2bd98abf45f66a1ba"
+source = "git+https://github.com/dusterthefirst/dioxus?branch=wasm-cfg#cdbdc4c4a20747afea38a9a62062fbd125037f4c"
 dependencies = [
  "dioxus-core",
  "futures-channel",
@@ -169,8 +165,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dd84e70659e31d822d552b62112fdf4bad8cd177ebe1e7b3c5160f066d093be"
+source = "git+https://github.com/dusterthefirst/dioxus?branch=wasm-cfg#cdbdc4c4a20747afea38a9a62062fbd125037f4c"
 dependencies = [
  "dioxus-core",
 ]
@@ -178,8 +173,7 @@ dependencies = [
 [[package]]
 name = "dioxus-interpreter-js"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ba693ac9940d9fcf48cfa03ffe412debf43fbfc010b106c4ac520a21332d890"
+source = "git+https://github.com/dusterthefirst/dioxus?branch=wasm-cfg#cdbdc4c4a20747afea38a9a62062fbd125037f4c"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -189,8 +183,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router"
 version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f12030d5bcfd49c361e28cc70a2e7cb3026abdd9e983b494d6400e1fd5ca4d6"
+source = "git+https://github.com/dusterthefirst/dioxus?branch=wasm-cfg#cdbdc4c4a20747afea38a9a62062fbd125037f4c"
 dependencies = [
  "dioxus-core",
  "dioxus-core-macro",
@@ -211,8 +204,7 @@ dependencies = [
 [[package]]
 name = "dioxus-web"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9743168cc6fbd7ce05e0011c964c47def43550cb3e5b63e2340f481bc22bbec"
+source = "git+https://github.com/dusterthefirst/dioxus?branch=wasm-cfg#cdbdc4c4a20747afea38a9a62062fbd125037f4c"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",
@@ -547,9 +539,9 @@ checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 
 [[package]]
 name = "pin-project-lite"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e280fbe77cc62c91527259e9442153f4688736748d24660126286329742b4c6c"
+checksum = "e0a7ae3ac2f1173085d398531c705756c94a4c56843785df85a60c1a0afac116"
 
 [[package]]
 name = "pin-utils"
@@ -756,9 +748,9 @@ checksum = "42657b1a6f4d817cda8e7a0ace261fe0cc946cf3a80314390b22cc61ae080792"
 
 [[package]]
 name = "tinyvec"
-version = "1.5.1"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c1c1d5a42b6245520c249549ec267180beaffcc0615401ac8e31853d4b6d8d2"
+checksum = "87cc5ceb3875bb20c2890005a4e226a4651264a5c75edb2421b52861a0a0cb50"
 dependencies = [
  "tinyvec_macros",
 ]
@@ -771,9 +763,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "unicode-bidi"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a01404663e3db436ed2746d9fefef640d868edae3cceb81c3b8d5732fda678f"
+checksum = "099b7128301d285f79ddd55b9a83d5e6b9e97c92e0ea0daebee7263e932de992"
 
 [[package]]
 name = "unicode-normalization"

@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use hook::{use_repos::use_repos, use_viewport::use_viewport};
+use hook::use_repos::use_repos;
 
 mod gh;
 mod hook;
@@ -47,9 +47,12 @@ fn app(cx: Scope) -> Element {
                 rsx! {
                     section {
                         key: "{user}",
+                        class: "user",
 
                         h2 {
-                            style: "position: sticky; top: 0; background: #000;",
+                            class: "username",
+                            onclick: |e| panic!("{e:?}"),
+
                             "{user}"
                         }
                         repos.iter().map(|repo| rsx!{
@@ -71,7 +74,7 @@ fn app(cx: Scope) -> Element {
         },
     };
 
-    let viewport = use_viewport(&cx);
+    // let viewport = use_viewport(&cx);
 
     cx.render(rsx! {
         div {
@@ -146,13 +149,13 @@ fn app(cx: Scope) -> Element {
                 }
             }
 
-            div {
-                style: "top: {viewport.scroll_y}px; position: absolute;",
+            // div {
+            //     style: "top: {viewport.scroll_y}px; position: absolute;",
 
-                h1 { "{viewport.scroll_y}px" }
-                h1 { "{viewport.client_height}px by {viewport.client_width}px" }
-                hr {}
-            }
+            //     h1 { "{viewport.scroll_y}px" }
+            //     h1 { "{viewport.client_height}px by {viewport.client_width}px" }
+            //     hr {}
+            // }
 
             repos
         }

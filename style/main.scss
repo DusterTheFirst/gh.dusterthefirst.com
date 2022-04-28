@@ -54,10 +54,17 @@ body {
     }
 }
 
-.repo {
-    .description {
-        display: flex;
-        justify-content: space-between;
-        text-align: center;
+section.user {
+    .username {
+        position: sticky; top: 0; background: #000;
     }
+
+    .repo {
+        .description {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+        }
+    }
+    
 }

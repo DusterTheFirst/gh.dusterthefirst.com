@@ -9,6 +9,9 @@ pub struct Viewport {
     pub client_width: i32,
 }
 
+#[deprecated(
+    note = "Updating the DOM on every scroll event can be costly, try to use intersection observers instead"
+)]
 pub fn use_viewport(cx: &ScopeState) -> &Viewport {
     let window = window().expect("window should always exist");
     let document = window.document().expect("document should always exist");
