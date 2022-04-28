@@ -2,9 +2,9 @@ use dioxus::{hooks::use_state, prelude::ScopeState};
 use gloo_events::EventListener;
 use web_sys::window;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Viewport {
-    pub scroll_y: i32,
+    pub scroll_y: f64,
     pub client_height: i32,
     pub client_width: i32,
 }
@@ -19,16 +19,7 @@ pub fn use_viewport(cx: &ScopeState) -> &Viewport {
     let get_scroll_y = {
         let window = window.clone();
 
-        move || {
-            let scroll_y = window.scroll_y().expect("scroll_y should not error");
-            assert_eq!(
-                scroll_y.fract(),
-                0.0,
-                "scroll_y returned a fractional amount of pixels"
-            );
-
-            scroll_y as i32
-        }
+        move || window.scroll_y().expect("scroll_y should not error")
     };
     let get_client_size = move || {
         (
