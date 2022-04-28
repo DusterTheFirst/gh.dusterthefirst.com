@@ -1,4 +1,4 @@
-use css_colors::{Color, percent};
+use css_colors::{percent, Color};
 use dioxus::prelude::*;
 
 use crate::hook::repos::RepoAndColor;
