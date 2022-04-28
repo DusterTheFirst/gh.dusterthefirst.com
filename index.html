@@ -10,10 +10,19 @@
         <meta name="description" content="Zachary Kohnen's github portfolio">
 
         <!-- Links -->
-        <link data-trunk rel="scss" href="style/main.scss"/>
+        <link data-trunk rel="scss" href="style/main.scss" />
+        <link data-trunk rel="scss" href="style/panic.scss" />
         <!-- <link data-trunk rel="link" href="assets/icon.png"/> -->
     </head>
     <body>
         <div id="main"></div>
+        <div id="panic">
+            <div class="message">
+                <h1>webpage encountered a panic!</h1>
+                <div>the application will no longer respond to user inputs.</div>
+                <div>check the developer console for more information.</div>
+                <button onclick="location.reload()">reload</button>
+            </div>
+        </div>
     </body>
 </html>

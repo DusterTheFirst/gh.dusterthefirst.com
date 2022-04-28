@@ -6,8 +6,21 @@ mod hook;
 mod time;
 mod view;
 
+fn set_panic_hook() {
+    std::panic::set_hook(Box::new(|panic_info| {
+        // Try to show the panic in HTML
+        web_sys::window()
+            .and_then(|window| window.document())
+            .and_then(|document| document.body())
+            .and_then(|element| element.set_attribute("data-panicked", "true").ok());
+
+        // Use console error panic hook to send the info to the console
+        console_error_panic_hook::hook(panic_info);
+    }));
+}
+
 fn main() {
-    console_error_panic_hook::set_once();
+    set_panic_hook();
 
     console_log::init_with_level(if cfg!(debug_assertions) {
         log::Level::Debug
@@ -17,6 +30,9 @@ fn main() {
     .expect("logger already initialized");
 
     dioxus::web::launch(app);
+
+    // Dioxus unconditionally replaces the panic hook, so reinstate it
+    set_panic_hook();
 }
 
 fn app(cx: Scope) -> Element {
@@ -61,6 +77,7 @@ fn app(cx: Scope) -> Element {
         div {
             header {
                 class: "title-card",
+                onclick: |_| panic!("test"),
 
                 div {
                     class: "extra",
