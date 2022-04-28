@@ -7,7 +7,7 @@ body:not([data-panicked="true"]) {
 }
 
 #panic {
-    position: absolute;
+    position: fixed;
     inset: 0;
     
     background-color: transparentize($panic-red, $amount: 0.5);
@@ -22,7 +22,6 @@ body:not([data-panicked="true"]) {
         color: #eeeeee;
 
         text-align: center;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
         padding: 1em 2em;
         border-radius: 2em;
@@ -36,8 +35,8 @@ body:not([data-panicked="true"]) {
         }
 
         button {
-            background-color: $panic-red;
-            color: #eeeeee;
+            color: #000000;
+            background-color: desaturate(#eeeeee, 20%);
             border: none;
 
             margin: 1em;
@@ -47,8 +46,16 @@ body:not([data-panicked="true"]) {
             pointer-events: all;
 
             &:hover {
-                background-color: darken($panic-red, 20);
+                background-color: #eeeeee;
+            }
+
+            &.danger {
                 color: #eeeeee;
+                background-color: desaturate($panic-red, $amount: 20%);
+
+                &:hover {
+                    background-color: $panic-red;
+                }
             }
         }
     }

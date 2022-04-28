@@ -19,9 +19,16 @@
         <div id="panic">
             <div class="message">
                 <h1>webpage encountered a panic!</h1>
-                <div>the application will no longer respond to user inputs.</div>
+                <div>the application will no longer respond to user inputs correctly.</div>
                 <div>check the developer console for more information.</div>
-                <button onclick="location.reload()">reload</button>
+                <div class="buttons">
+                    <button onclick="location.reload()">
+                        reload
+                    </button>
+                    <button onclick="window.document.body.removeAttribute('data-panicked')" class="danger">
+                        dismiss
+                    </button>
+                </div>
             </div>
         </div>
     </body>
