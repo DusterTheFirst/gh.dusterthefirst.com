@@ -10,7 +10,7 @@ body {
 }
 
 .title-card {
-    height: 50vh;
+    height: calc(100vh - 10em);
 
     position: relative;
     display: flex;
